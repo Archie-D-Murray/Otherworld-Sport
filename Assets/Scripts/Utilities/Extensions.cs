@@ -108,6 +108,10 @@ public static class Extensions {
         return array[Random.Range(0, array.Length)];
     }
 
+    public static T GetRandomValue<T>(this List<T> array) {
+        return array[Random.Range(0, array.Count)];
+    }
+
     public static float AngleTo(this Vector2 origin, Vector2 point) {
         return Vector2.SignedAngle(Vector2.up, (point - origin).normalized);
     }

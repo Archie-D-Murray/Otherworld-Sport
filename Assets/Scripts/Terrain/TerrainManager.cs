@@ -6,52 +6,125 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 
+using Tags;
+
 namespace Terrain {
+    public enum TerrainType { Forest, Cyber, Steampunk }
+
+    [DefaultExecutionOrder(-99)]
     public class TerrainManager : Singleton<TerrainManager> {
-        [SerializeField] private GameObject[] _segments;
+        [SerializeField] private GameObject _targetPrefab;
+        [SerializeField] private GameObject _worldTargetPrefab;
+        [SerializeField] private GameObject _updraftPrefab;
+        [SerializeField] private TerrainData[] _terrainData;
+        [SerializeField] private SpriteRenderer _background;
+        [SerializeField] private List<Target> _targets;
+        [SerializeField] private List<Updraft> _updrafts;
+        [SerializeField] private Vector3[] _targetPoints;
+        [SerializeField] private Vector3[] _updraftPoints;
+        [SerializeField] private float _worldTargetChance = 0.2f;
+        [SerializeField] private int _minTargets = 3;
+        [SerializeField] private int _maxTargets = 5;
+        [SerializeField] private int _updraftCount = 2;
 
-        private int _pool;
+        private Dictionary<TerrainType, int> _lookup = new Dictionary<TerrainType, int>();
+        private TerrainData _currentData => _terrainData[_lookup[_type]];
 
-        private Queue<Transform> _spawnedSegments = new Queue<Transform>();
+        [SerializeField] private PlayerController _player;
+        [SerializeField] private TerrainType _type = TerrainType.Forest;
 
-        [SerializeField] private Vector3 _initialPos;
-        [SerializeField] private float _distance = 0.0f;
-        [SerializeField] private Transform _player;
-        [SerializeField] private float _min;
+        public readonly HashSet<TerrainType> DiscoveredWorlds = new HashSet<TerrainType>();
+        public readonly int MaxWorldTypes = Enum.GetValues(typeof(TerrainType)).Length;
+        public Action OnDiscoveredAllWorlds;
+        public TerrainType WorldType => _type;
 
         private void Start() {
-            _min = Helpers.Instance.MainCamera.orthographicSize;
-            _player = FindFirstObjectByType<PlayerController>().transform;
-            _initialPos = transform.position;
-            _pool = _segments.Length;
-            List<Transform> segments = FindObjectsOfType<TerrainSegment>().Select((TerrainSegment segment) => segment.transform).ToList();
-            segments.Sort((current, other) => other.position.y.CompareTo(current.position.y));
-            foreach (Transform segment in segments) {
-                _spawnedSegments.Enqueue(segment);
+            for (int i = 0; i < _terrainData.Length; i++) {
+                _lookup.Add(_terrainData[i].Type, i);
             }
-            SpawnSegment();
-            SpawnSegment();
-        }
-
-        private void FixedUpdate() {
-            if (_initialPos.y - _player.position.y >= _distance - _min) {
-                SpawnSegment();
+            _player = FindFirstObjectByType<PlayerController>();
+            Transform targetPoints = GetComponentInChildren<TargetPoints>().transform;
+            _targetPoints = new Vector3[targetPoints.childCount];
+            for (int i = 0; i < targetPoints.childCount; i++) {
+                _targetPoints[i] = targetPoints.GetChild(i).position;
             }
-            if (_spawnedSegments.Count > 0 && _spawnedSegments.Peek().position.y > _player.position.y + _min * 2.0f) {
-                Destroy(_spawnedSegments.Dequeue().gameObject);
+            Transform updraftPoints = GetComponentInChildren<UpdraftPoints>().transform;
+            _updraftPoints = new Vector3[updraftPoints.childCount];
+            for (int i = 0; i < updraftPoints.childCount; i++) {
+                _updraftPoints[i] = updraftPoints.GetChild(i).position;
             }
         }
 
-        private void SpawnSegment() {
-            Vector3 pos = _initialPos;
-            Transform segment = Instantiate(_segments[UnityEngine.Random.Range(0, _pool--)]).transform;
-            if (_pool < 0) {
-                _pool = _segments.Length;
+        public void SetWorldType(TerrainType type) {
+            _type = type;
+            _background.sprite = _currentData.Background;
+            foreach (Target target in _targets) {
+                target.SetType(_currentData);
             }
-            float height = segment.GetComponent<TerrainSegment>().Height();
-            _distance += height;
-            segment.position = _initialPos + Vector3.down * _distance;
-            _spawnedSegments.Enqueue(segment);
+            GenerateTargets();
+            GenerateUpdrafts();
+            if (!DiscoveredWorlds.Contains(type)) {
+                DiscoveredWorlds.Add(type);
+                if (DiscoveredWorlds.Count == MaxWorldTypes) {
+                    OnDiscoveredAllWorlds?.Invoke();
+                }
+            }
+        }
+
+        public void DestroyTarget(Target target) {
+            _targets.Remove(target);
+            Destroy(target.gameObject);
+            if (_targets.Count == 0) {
+                GenerateTargets(false);
+            }
+        }
+
+        private void GenerateTargets(bool clear = true) {
+            int targetCount = UnityEngine.Random.Range(_minTargets, _maxTargets);
+            bool spawnedWorld = false;
+            if (clear) {
+                foreach (Target target in _targets) {
+                    Destroy(target.gameObject);
+                }
+                _targets.Clear();
+            }
+            List<Vector3> available = _targetPoints.ToList();
+            for (int i = 0; i < targetCount; i++) {
+                bool spawnWorld = UnityEngine.Random.value <= _worldTargetChance;
+                int idx = UnityEngine.Random.Range(0, available.Count);
+                Vector3 spawnPoint = available[idx];
+                available.RemoveAt(idx);
+                if (spawnWorld && !spawnedWorld) {
+                    _targets.Add(Instantiate(_worldTargetPrefab, spawnPoint, Quaternion.identity).GetComponent<Target>());
+                    _targets.Last().SetType(_currentData);
+                    spawnedWorld = true;
+                } else {
+                    _targets.Add(Instantiate(_targetPrefab, spawnPoint, Quaternion.identity).GetComponent<Target>());
+                    _targets.Last().SetType(_currentData);
+                }
+            }
+            available.Clear();
+            foreach (Vector3 target in _targetPoints) {
+                available.Add(target);
+            }
+        }
+
+        private void GenerateUpdrafts() {
+            foreach (Updraft updraft in _updrafts) {
+                Destroy(updraft.gameObject);
+            }
+            _updrafts.Clear();
+            List<Vector3> available = _updraftPoints.ToList();
+            for (int i = 0; i < _updraftCount; i++) {
+                int idx = UnityEngine.Random.Range(0, available.Count);
+                Vector3 spawnPoint = available[idx];
+                available.RemoveAt(idx);
+                _updrafts.Add(Instantiate(_updraftPrefab, spawnPoint, Quaternion.identity).GetComponent<Updraft>());
+            }
+        }
+
+        public Color GetAccent(TerrainType type) {
+            return _terrainData[_lookup[type]].TargetAccent;
         }
     }
 }

@@ -10,13 +10,13 @@ public enum UpgradeType { Stamina, DrawSpeed, Power }
 
 [Serializable]
 public class Upgrade {
-    private const float UPGRADE_EXPONENT = 1.1f;
+    private const float UPGRADE_EXPONENT = 2.0f;
     public UpgradeType Type;
     public float UpgradeAmount;
     public int MaxUpgrades = 4;
     public int CurrentUpgrades = 0;
     public int Cost = 250;
-    public float CostMultiplier = 1.0f;
+    public string Description;
 
     public TMP_Text Readout;
     public TMP_Text Price;
@@ -42,11 +42,11 @@ public class Upgrade {
                 Readout.text = $"{UpgradeManager.Instance.DrawMultiplier:0%}";
                 break;
         }
-        Price.text = GetCost().ToString();
         CurrentUpgrades++;
-        if (CurrentUpgrades > MaxUpgrades) {
+        Price.text = GetCost().ToString();
+        if (CurrentUpgrades == MaxUpgrades) {
             Readout.text = "MAX";
-            Button.interactable = false;
+            Button.gameObject.SetActive(false);
             EventSystem.current.SetSelectedGameObject(null);
         }
     }

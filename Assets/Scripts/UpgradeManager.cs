@@ -16,21 +16,24 @@ public class UpgradeManager : Singleton<UpgradeManager> {
     [SerializeField] private int _money;
     [SerializeField] private Upgrade[] _upgrades = new Upgrade[3];
     [SerializeField] private GameObject _upgradePrefab;
-    [SerializeField] private CanvasGroup _upgradeCanvas;
-
+    [SerializeField] private Transform _upgradeCanvas;
+    [SerializeField] private TMP_Text _moneyText;
 
     public float PowerMultiplier = 1.0f;
     public float StaminaMultiplier = 1.0f;
     public float DrawMultiplier = 1.0f;
 
-    public int Money { get => _money; set => _money = value; }
+    public int Money {
+        get { return _money; }
+        set { _money = value; UpdateUpgrades(); }
+    }
 
     private void Start() {
         for (int i = 0; i < _upgrades.Length; i++) {
             Upgrade upgrade = _upgrades[i];
 
             _lookup.Add(upgrade.Type, i);
-            GameObject instance = Instantiate(_upgradePrefab, _upgradeCanvas.transform);
+            GameObject instance = Instantiate(_upgradePrefab, _upgradeCanvas);
             instance.GetComponentInChildren<TMP_Text>().text = upgrade.GetCost().ToString();
             foreach (Image image in instance.GetComponentsInChildren<Image>()) {
                 if (image.gameObject.HasComponent<IconTag>()) {
@@ -49,6 +52,8 @@ public class UpgradeManager : Singleton<UpgradeManager> {
                 } else if (text.gameObject.HasComponent<PriceTag>()) {
                     upgrade.Price = text;
                     upgrade.Price.text = upgrade.GetCost().ToString();
+                } else {
+                    text.text = upgrade.Description;
                 }
             }
             button.onClick.AddListener(() => Buy(upgrade));
@@ -57,11 +62,13 @@ public class UpgradeManager : Singleton<UpgradeManager> {
     }
 
     private void Buy(Upgrade upgrade) {
+        _money -= upgrade.GetCost();
         upgrade.ApplyUpgrade();
         UpdateUpgrades();
     }
 
     private void UpdateUpgrades() {
+        _moneyText.text = $"Money: {_money}";
         Debug.Log("Updated upgrades");
         foreach (Upgrade upgrade in _upgrades) {
             upgrade.Button.interactable = _money >= upgrade.GetCost() && upgrade.CurrentUpgrades < upgrade.MaxUpgrades;

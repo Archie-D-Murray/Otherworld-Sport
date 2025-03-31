@@ -1,0 +1,78 @@
+using UnityEngine;
+
+using Utilities;
+
+using System.Collections.Generic;
+using System;
+using System.Linq;
+
+namespace Terrain {
+    [DefaultExecutionOrder(-99)]
+    public class TerrainManager : Singleton<TerrainManager> {
+        [SerializeField] private GameObject[] _segments;
+        [SerializeField] private TerrainData[] _terrainData;
+
+        private int _pool;
+
+        private Queue<TerrainSegment> _spawnedSegments = new Queue<TerrainSegment>();
+        private Dictionary<TerrainType, int> _lookup = new Dictionary<TerrainType, int>();
+        private TerrainData _currentData => _terrainData[_lookup[_type]];
+
+        [SerializeField] private Vector3 _initialPos;
+        [SerializeField] private float _distance = 0.0f;
+        [SerializeField] private Transform _player;
+        [SerializeField] private float _min;
+        [SerializeField] private TerrainType _type = TerrainType.Forest;
+
+        private void Start() {
+            for (int i = 0; i < _terrainData.Length; i++) {
+                _lookup.Add(_terrainData[i].Type, i);
+            }
+            _min = Helpers.Instance.MainCamera.orthographicSize;
+            _player = FindFirstObjectByType<PlayerController>().transform;
+            _initialPos = transform.position;
+            _pool = _segments.Length;
+            List<TerrainSegment> segments = FindObjectsOfType<TerrainSegment>().ToList();
+            segments.Sort((current, other) => other.transform.position.y.CompareTo(current.transform.position.y));
+            foreach (TerrainSegment segment in segments) {
+                segment.SetType(_currentData);
+                _spawnedSegments.Enqueue(segment);
+            }
+            SpawnSegment();
+            SpawnSegment();
+        }
+
+        private void FixedUpdate() {
+            if (_initialPos.y - _player.position.y >= _distance - _min) {
+                SpawnSegment();
+            }
+            if (_spawnedSegments.Count > 0 && _spawnedSegments.Peek().transform.position.y > _player.position.y + _min * 2.0f) {
+                Destroy(_spawnedSegments.Dequeue().gameObject);
+            }
+        }
+
+        private void SpawnSegment() {
+            Vector3 pos = _initialPos;
+            TerrainSegment segment = Instantiate(_segments[UnityEngine.Random.Range(0, _pool--)]).GetComponent<TerrainSegment>();
+            if (_pool < 0) {
+                _pool = _segments.Length;
+            }
+            segment.SetType(_currentData);
+            float height = segment.Height();
+            _distance += height;
+            segment.transform.position = _initialPos + Vector3.down * _distance;
+            _spawnedSegments.Enqueue(segment);
+        }
+
+        public void SetWorldType(TerrainType type) {
+            _type = type;
+            foreach (TerrainSegment segment in _spawnedSegments) {
+                segment.SetType(_currentData);
+            }
+        }
+
+        public Color GetAccent(TerrainType type) {
+            return _terrainData[_lookup[type]].TargetAccent;
+        }
+    }
+}

@@ -1,0 +1,26 @@
+using System;
+
+using UnityEngine;
+
+namespace Terrain {
+
+
+    public class TerrainSegment : MonoBehaviour {
+
+        [SerializeField] private SpriteRenderer _background;
+        [SerializeField] private Target[] _targets;
+
+        [SerializeField] private float _height;
+
+        public float Height() {
+            return _height;
+        }
+
+        public void SetType(TerrainData data) {
+            _background.sprite = data.Background;
+            foreach (Target target in _targets) {
+                target.SetType(data);
+            }
+        }
+    }
+}

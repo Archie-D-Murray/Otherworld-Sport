@@ -12,6 +12,7 @@ public class PlayerInputs : Singleton<PlayerInputs> {
 
     public bool QuickTime = false;
     public Vector2 MousePosition;
+    public float Horizontal;
 
     public InputAction FireAction => _action.Player.Fire;
     public InputAction QuickTimeAction => _action.Player.QuickTime;
@@ -35,6 +36,9 @@ public class PlayerInputs : Singleton<PlayerInputs> {
         _action.Player.MousePosition.performed += UpdateMousePosition;
         _action.Player.QuickTime.started += StartQuickTime;
         _action.Player.QuickTime.canceled += EndQuickTime;
+        _action.Player.Move.started += HorizontalInput;
+        _action.Player.Move.performed += HorizontalInput;
+        _action.Player.Move.canceled += HorizontalInput;
         _action.Enable();
     }
 
@@ -48,5 +52,9 @@ public class PlayerInputs : Singleton<PlayerInputs> {
 
     private void UpdateMousePosition(InputAction.CallbackContext context) {
         MousePosition = Helpers.Instance.MainCamera.ScreenToWorldPoint(context.ReadValue<Vector2>());
+    }
+
+    private void HorizontalInput(InputAction.CallbackContext context) {
+        Horizontal = context.ReadValue<float>();
     }
 }
