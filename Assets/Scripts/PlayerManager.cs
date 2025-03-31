@@ -6,6 +6,8 @@ using TMPro;
 
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+using UnityEngine.Tilemaps;
 using UnityEngine.UI;
 
 using Utilities;
@@ -14,39 +16,46 @@ public class PlayerManager : MonoBehaviour {
     [SerializeField] private PlayerController _player;
     [SerializeField] private Vector3 _initialPosition;
     [SerializeField] private Collider2D _floor;
-    [SerializeField] private Button _start;
+    [SerializeField] private Button _restart;
     [SerializeField] private TMP_Text _message;
     [SerializeField] private CanvasGroup _ui;
-    [SerializeField] private Image _stamina;
+    [SerializeField] private CanvasGroup _fade;
 
     private void Start() {
+        _fade.FadeCanvas(0.5f, true, this);
         _player = FindFirstObjectByType<PlayerController>();
         _player.RunEnded += EndRun;
         _initialPosition = _player.transform.position;
         _ui = GetComponent<CanvasGroup>();
-        _start = GetComponentInChildren<Button>();
-        _start.onClick.AddListener(ChangeStart);
-        _start.onClick.AddListener(StartRun);
+        _restart = GetComponentInChildren<Button>(true);
+        _restart.onClick.AddListener(ChangeStart);
+        _restart.onClick.AddListener(StartRun);
     }
 
-    private void FixedUpdate() {
-        if (_floor.enabled) {
-            _stamina.fillAmount = 1.0f;
-            _stamina.color = Color.blue;
-        } else {
-            _stamina.fillAmount = _player.StaminaPercent;
-            _stamina.color = Color.Lerp(Color.red, Color.green, _player.StaminaPercent);
-        }
+    private IEnumerator ResetEnable() {
+        yield return Yielders.WaitForSeconds(1.0f);
+        UpgradeManager.Instance.EnableButtons();
+        _restart.GetComponentInChildren<TMP_Text>().text = "Retry!";
+    }
+
+    public void MainMenu() {
+        _fade.FadeCanvas(1.0f, false, this);
+        StartCoroutine(GotoMainMenu());
+    }
+
+    private IEnumerator GotoMainMenu() {
+        yield return Yielders.WaitForSeconds(1.0f);
+        SceneManager.LoadScene(0);
     }
 
     private void ChangeStart() {
-        _start.GetComponentInChildren<TMP_Text>().text = "Reset!";
-        _start.onClick.RemoveListener(ChangeStart);
+        StartCoroutine(ResetEnable());
+        _restart.onClick.RemoveListener(ChangeStart);
     }
 
     private void StartRun() {
         TerrainManager.Instance.SetWorldType(TerrainType.Forest);
-        _start.interactable = false;
+        _restart.interactable = false;
         _ui.FadeCanvas(1.0f, true, this);
         EventSystem.current.SetSelectedGameObject(null);
         _floor.enabled = false;
@@ -56,7 +65,7 @@ public class PlayerManager : MonoBehaviour {
     private void EndRun(EndCause cause) {
         _message.text = GetCause(cause);
         _ui.FadeCanvas(1.0f, false, this);
-        _start.interactable = true;
+        _restart.interactable = true;
         _floor.enabled = true;
         _player.Reset(_initialPosition);
     }

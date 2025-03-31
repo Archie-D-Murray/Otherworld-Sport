@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 
 using Tags;
+using TMPro;
 
 namespace Terrain {
     public enum TerrainType { Forest, Cyber, Steampunk }
@@ -16,6 +17,8 @@ namespace Terrain {
         [SerializeField] private GameObject _targetPrefab;
         [SerializeField] private GameObject _worldTargetPrefab;
         [SerializeField] private GameObject _updraftPrefab;
+        [SerializeField] private GameObject _hitPrefab;
+        [SerializeField] private Transform _worldCanvas;
         [SerializeField] private TerrainData[] _terrainData;
         [SerializeField] private SpriteRenderer _background;
         [SerializeField] private List<Target> _targets;
@@ -69,6 +72,7 @@ namespace Terrain {
                     OnDiscoveredAllWorlds?.Invoke();
                 }
             }
+            _player.OnWorldChange();
         }
 
         public void DestroyTarget(Target target) {
@@ -125,6 +129,12 @@ namespace Terrain {
 
         public Color GetAccent(TerrainType type) {
             return _terrainData[_lookup[type]].TargetAccent;
+        }
+
+        public void SpawnHitMessage(bool bullseye, int money, Vector3 position) {
+            GameObject hit = Instantiate(_hitPrefab, _worldCanvas);
+            hit.transform.position = position;
+            hit.GetComponentInChildren<TMP_Text>().text = $"{money}{(bullseye ? "\nBullseye!" : "")}";
         }
     }
 }

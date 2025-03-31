@@ -124,14 +124,14 @@ ScriptedImporter:
   animatedSpriteImportData:
   - name: Laser
     originalName: 
-    pivot: {x: 0.5641026, y: -0.16}
+    pivot: {x: 0.55, y: -0.16}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
       serializedVersion: 2
       x: 4
       y: 4
-      width: 39
+      width: 40
       height: 25
     spriteID: ce541fc2b4bc46843b367de1fe0a4940
     spriteBone: []
@@ -157,7 +157,7 @@ ScriptedImporter:
       cellRect:
         x: 10
         y: 4
-        width: 39
+        width: 40
         height: 25
       spriteId: ce541fc2b4bc46843b367de1fe0a4940
     linkedCells: []

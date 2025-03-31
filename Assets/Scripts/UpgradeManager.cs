@@ -31,7 +31,6 @@ public class UpgradeManager : Singleton<UpgradeManager> {
     private void Start() {
         for (int i = 0; i < _upgrades.Length; i++) {
             Upgrade upgrade = _upgrades[i];
-
             _lookup.Add(upgrade.Type, i);
             GameObject instance = Instantiate(_upgradePrefab, _upgradeCanvas);
             instance.GetComponentInChildren<TMP_Text>().text = upgrade.GetCost().ToString();
@@ -56,9 +55,18 @@ public class UpgradeManager : Singleton<UpgradeManager> {
                     text.text = upgrade.Description;
                 }
             }
+            instance.SetActive(false);
             button.onClick.AddListener(() => Buy(upgrade));
             button.interactable = false;
         }
+        _moneyText.alpha = 0;
+    }
+
+    public void EnableButtons() {
+        foreach (Upgrade upgrade in _upgrades) {
+            upgrade.Button.transform.parent.gameObject.SetActive(true);
+        }
+        _moneyText.alpha = 1.0f;
     }
 
     private void Buy(Upgrade upgrade) {

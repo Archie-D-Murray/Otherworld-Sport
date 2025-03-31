@@ -15,23 +15,25 @@ namespace Terrain {
 
         protected virtual void OnTriggerEnter2D(Collider2D collider) {
             if (_hit.Contains(collider.gameObject)) { return; }
+            _hit.Add(collider.gameObject);
             if (collider.IsTouching(_bullseye)) {
                 Debug.Log("Bullseye!");
                 UpgradeManager.Instance.Money += _value * BULLSEYE_MULTIPLIER;
+                SpawnHit(true, _value * BULLSEYE_MULTIPLIER);
             } else {
                 Debug.Log("Normal.");
                 UpgradeManager.Instance.Money += _value;
+                SpawnHit(false, _value);
             }
-            _hit.Add(collider.gameObject);
             TerrainManager.Instance.DestroyTarget(this);
-        }
-
-        private void OnTriggerExit2D(Collider2D collider) {
-            _hit.Remove(collider.gameObject);
         }
 
         public virtual void SetType(TerrainData data) {
             _renderer.sprite = data.TargetSprite;
+        }
+
+        protected virtual void SpawnHit(bool bullseye, int value) {
+            TerrainManager.Instance.SpawnHitMessage(bullseye, value, transform.position);
         }
     }
 }

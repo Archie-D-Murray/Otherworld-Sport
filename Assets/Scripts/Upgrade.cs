@@ -44,6 +44,7 @@ public class Upgrade {
         }
         CurrentUpgrades++;
         Price.text = GetCost().ToString();
+        Progress.fillAmount = (float)CurrentUpgrades / (float)MaxUpgrades;
         if (CurrentUpgrades == MaxUpgrades) {
             Readout.text = "MAX";
             Button.gameObject.SetActive(false);

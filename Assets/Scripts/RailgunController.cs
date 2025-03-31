@@ -8,7 +8,7 @@ public class RailgunController : WeaponController {
     [SerializeField] private Color _chargedColour;
     [SerializeField] private bool _charged = false;
 
-    private Transform _launchPoint;
+    private Transform _pivot;
     private SpriteRenderer _beamIndicator;
     [SerializeField] private SpriteRenderer _renderer;
 
@@ -16,16 +16,16 @@ public class RailgunController : WeaponController {
         Transform railgun = GetComponentInChildren<Railgun>().transform;
         _renderer = railgun.GetComponent<SpriteRenderer>();
         _beamIndicator = railgun.GetChild(0).GetComponent<SpriteRenderer>();
-        _launchPoint = railgun.parent;
+        _pivot = railgun.parent;
         enabled = false;
     }
 
     private void OnDisable() {
-        _launchPoint.OrNull()?.gameObject.SetActive(false);
+        _pivot.OrNull()?.gameObject.SetActive(false);
     }
 
     private void OnEnable() {
-        _launchPoint.OrNull()?.gameObject.SetActive(true);
+        _pivot.OrNull()?.gameObject.SetActive(true);
     }
 
     public override void FireHold(float dt) {
@@ -43,13 +43,13 @@ public class RailgunController : WeaponController {
     }
 
     private void FixedUpdate() {
-        _launchPoint.localRotation = Quaternion.RotateTowards(_launchPoint.localRotation, MouseRotation(), Time.fixedDeltaTime * _turnSpeed);
-        _renderer.flipX = _launchPoint.localRotation.eulerAngles.z > 180.0f;
+        _pivot.localRotation = Quaternion.RotateTowards(_pivot.localRotation, MouseRotation(), Time.fixedDeltaTime * _turnSpeed);
+        _renderer.flipX = _pivot.localRotation.eulerAngles.z > 180.0f;
     }
 
     public override void FirePress() {
         if (!_player.FireTimer.IsFinished) { return; }
-        _launchPoint.localRotation = Quaternion.RotateTowards(_launchPoint.localRotation, MouseRotation(), Time.deltaTime * _turnSpeed);
+        _pivot.localRotation = Quaternion.RotateTowards(_pivot.localRotation, MouseRotation(), Time.deltaTime * _turnSpeed);
         _beamIndicator.color = Color.white;
         _beamIndicator.size = _noCharge;
         _power = minPower;
@@ -76,7 +76,7 @@ public class RailgunController : WeaponController {
     }
 
     private Quaternion MouseRotation() {
-        float angle = PlayerInputs.Instance.MouseAngle(_launchPoint.position);
+        float angle = PlayerInputs.Instance.MouseAngle(_pivot.position);
         if (angle > 0.0f) {
             angle = Mathf.Clamp(angle, _maxUp, 180.0f);
         } else {
