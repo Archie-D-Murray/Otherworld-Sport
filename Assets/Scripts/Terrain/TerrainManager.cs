@@ -26,6 +26,7 @@ namespace Terrain {
         [SerializeField] private Vector3[] _targetPoints;
         [SerializeField] private Vector3[] _updraftPoints;
         [SerializeField] private float _worldTargetChance = 0.2f;
+        [SerializeField] private BGMEmitter _bgm;
         [SerializeField] private int _minTargets = 3;
         [SerializeField] private int _maxTargets = 5;
         [SerializeField] private int _updraftCount = 2;
@@ -42,6 +43,9 @@ namespace Terrain {
         public TerrainType WorldType => _type;
 
         private void Start() {
+            _bgm = GetComponent<BGMEmitter>();
+            _bgm.PlayNone(0.0f);
+            _bgm.PlayBGM(BGMType.Forest);
             for (int i = 0; i < _terrainData.Length; i++) {
                 _lookup.Add(_terrainData[i].Type, i);
             }
@@ -60,6 +64,17 @@ namespace Terrain {
 
         public void SetWorldType(TerrainType type) {
             _type = type;
+            switch (type) {
+                case TerrainType.Steampunk:
+                    _bgm.PlayBGM(BGMType.Steampunk);
+                    break;
+                case TerrainType.Cyber:
+                    _bgm.PlayBGM(BGMType.Cyber);
+                    break;
+                default:
+                    _bgm.PlayBGM(BGMType.Forest);
+                    break;
+            }
             _background.sprite = _currentData.Background;
             foreach (Target target in _targets) {
                 target.SetType(_currentData);
@@ -77,7 +92,7 @@ namespace Terrain {
 
         public void DestroyTarget(Target target) {
             _targets.Remove(target);
-            Destroy(target.gameObject);
+            Destroy(target.gameObject, 0.5f);
             if (_targets.Count == 0) {
                 GenerateTargets(false);
             }

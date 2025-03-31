@@ -61,6 +61,7 @@ public class RailgunController : WeaponController {
         if (!_hold) { return; }
         if (_charged) {
             Instantiate(_projectile, _beamIndicator.transform.position, _beamIndicator.transform.rotation).GetComponent<Projectile>().Init(maxPower);
+            _emitter.Play(SoundEffectType.Railgun);
         }
         _beamIndicator.color = Color.white;
         _beamIndicator.size = _noCharge;

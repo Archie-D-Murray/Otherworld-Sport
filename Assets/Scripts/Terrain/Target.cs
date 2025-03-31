@@ -7,6 +7,7 @@ namespace Terrain {
         [SerializeField] private BoxCollider2D _bullseye;
         [SerializeField] private BoxCollider2D _normal;
         [SerializeField] private SpriteRenderer _renderer;
+        [SerializeField] private SFXEmitter _emitter;
 
         [SerializeField] private int _value = 100;
         const int BULLSEYE_MULTIPLIER = 2;
@@ -25,6 +26,7 @@ namespace Terrain {
                 UpgradeManager.Instance.Money += _value;
                 SpawnHit(false, _value);
             }
+            _emitter.Play(SoundEffectType.Target);
             TerrainManager.Instance.DestroyTarget(this);
         }
 

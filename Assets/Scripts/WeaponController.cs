@@ -15,12 +15,15 @@ public abstract class WeaponController : MonoBehaviour {
 
     [SerializeField] protected PlayerController _player;
 
+    protected SFXEmitter _emitter;
+
     protected float minPower => _minPower * UpgradeManager.Instance.PowerMultiplier;
     protected float maxPower => _maxPower * UpgradeManager.Instance.PowerMultiplier;
     protected float ChargeSpeed(float dt) => ((_maxPower - _minPower) / _chargeSpeed) * dt * UpgradeManager.Instance.DrawMultiplier * UpgradeManager.Instance.PowerMultiplier;
 
-    public virtual void Init(PlayerController player) {
+    public virtual void Init(PlayerController player, SFXEmitter emitter) {
         _player = player;
+        _emitter = emitter;
     }
 
     public float FireCooldown => _fireCooldown;

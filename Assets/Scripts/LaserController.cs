@@ -55,6 +55,7 @@ public class LaserController : WeaponController {
             Destroy(_laser.gameObject);
         } else {
             _laser.Init(_power);
+            _emitter.Play(SoundEffectType.Laser);
         }
         _laser = null;
         _power = minPower;

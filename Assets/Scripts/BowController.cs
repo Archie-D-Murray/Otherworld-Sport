@@ -63,6 +63,7 @@ public class BowController : WeaponController {
             Destroy(_arrow.gameObject);
         } else {
             _arrow.Init(_power, false);
+            _emitter.Play(SoundEffectType.Bow);
         }
         _arrow = null;
         _bowRenderer.color = Color.white;

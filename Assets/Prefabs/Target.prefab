@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3202607497955857592}
   - component: {fileID: 2586320161447404965}
   - component: {fileID: 5988608829408692660}
+  - component: {fileID: -9011275658398380887}
   m_Layer: 9
   m_Name: Target
   m_TagString: Untagged
@@ -103,6 +104,7 @@ MonoBehaviour:
   _bullseye: {fileID: 6452018516822240286}
   _normal: {fileID: 5988608829408692660}
   _renderer: {fileID: 9130817685253711025}
+  _emitter: {fileID: -9011275658398380887}
   _value: 100
 --- !u!50 &2586320161447404965
 Rigidbody2D:
@@ -176,6 +178,21 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.1875, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &-9011275658398380887
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5419062546649897301}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 429b69f68391b994e8eb60f52721e466, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _effects:
+  - Clip: {fileID: 8300000, guid: 3ec49651665df244a9b932b8b0f12800, type: 3}
+    Type: 1
 --- !u!1 &8847960372761243815
 GameObject:
   m_ObjectHideFlags: 0

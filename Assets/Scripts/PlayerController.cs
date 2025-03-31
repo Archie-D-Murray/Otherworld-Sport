@@ -44,6 +44,7 @@ public class PlayerController : MonoBehaviour {
     private CountDownTimer _fireTimer = new CountDownTimer(0.0f);
     private Rigidbody2D _rb2D;
     private Image _staminaIndicator;
+    private SFXEmitter _emitter;
 
     public CountDownTimer FireTimer => _fireTimer;
 
@@ -61,11 +62,15 @@ public class PlayerController : MonoBehaviour {
         _animator = GetComponent<Animator>();
         _laser = GetComponent<LaserController>();
         _railgun = GetComponent<RailgunController>();
+        _emitter = GetComponent<SFXEmitter>();
         _staminaIndicator = GetComponentInChildren<Image>();
-        _bow.Init(this);
-        _laser.Init(this);
-        _railgun.Init(this);
+        _bow.Init(this, _emitter);
+        _laser.Init(this, _emitter);
+        _railgun.Init(this, _emitter);
         SetFireType(FireType.Bow, true);
+        if (!transform.GetChild(0).gameObject.activeSelf) {
+            transform.GetChild(0).gameObject.SetActive(true);
+        }
         PlayerInputs.Instance.FireAction.started += DrawStart;
         PlayerInputs.Instance.FireAction.canceled += DrawRelease;
         RunEnded += RunEnd;
